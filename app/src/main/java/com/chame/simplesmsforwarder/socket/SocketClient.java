@@ -27,14 +27,11 @@ public class SocketClient {
         String root = String.format("%s:%s", ip, port);
 
         Uri.Builder builder = new Uri.Builder();
-        builder.scheme(scheme).authority(root);
+        builder.scheme(scheme).encodedAuthority(root);
         String uri = builder.build().toString();
 
         IO.Options options = IO.Options.builder()
-                .setForceNew(false)
-                .setMultiplex(true)
-                .setUpgrade(true)
-                .setReconnection(true)
+                .setPath("/socket.io/")
                 .setAuth(Collections.singletonMap("token", token))
                 .build();
 
@@ -50,18 +47,28 @@ public class SocketClient {
             disconnect();
         });
 
+        socket.on(Socket.EVENT_DISCONNECT, args -> {
+            listener.onConnectionFailure(FailureCode.AuthError);
+        });
+
+        socket.on(Socket.EVENT_CONNECT_ERROR, args -> {
+            listener.onConnectionFailure(FailureCode.AuthError);
+        });
+
         socket.on("message", message -> {
             String msg = message[0].toString();
 
             if (msg.equals("Authenticated")) {
-                if (msgListener != null) loginListener.onConnectionSuccess();
+                if (loginListener != null) loginListener.onConnectionSuccess();
             } else if (msg.equals("Unauthenticated")) {
-                listener.onConnectionFailure(FailureCode.AuthError);
+                if (listener != null) listener.onConnectionFailure(FailureCode.AuthError);
                 disconnect();
             } else {
                 if (msgListener != null) msgListener.onMessage(msg);
             }
         });
+
+        socket.connect();
     }
 
     public void notifyReady() {
@@ -87,6 +94,7 @@ public class SocketClient {
     }
 
     public boolean isConnected() {
+        if (socket == null) return false;
         return socket.connected();
     }
 

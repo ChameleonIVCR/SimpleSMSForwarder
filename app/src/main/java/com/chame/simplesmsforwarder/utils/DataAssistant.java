@@ -16,5 +16,4 @@ public class DataAssistant {
     public void close(){
         configuration.save();
     }
-
 }

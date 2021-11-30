@@ -23,6 +23,8 @@ public class MainActivity extends AppCompatActivity {
     private DataAssistant dataAssistant;
     private AppViewModel appViewModel;
     private ActivityMainBinding binding;
+
+
     public static MainActivity getInstance() {
         return weakActivity.get();
     }
@@ -32,7 +34,6 @@ public class MainActivity extends AppCompatActivity {
     public AppViewModel getAppViewModel() {
         return appViewModel;
     }
-
 
     public void setSnackbar(String msg) {
         Snackbar.make(

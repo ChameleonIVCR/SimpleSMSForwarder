@@ -3,6 +3,8 @@ package com.chame.simplesmsforwarder.utils;
 import android.app.Application;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import com.chame.simplesmsforwarder.MainActivity;
 import com.chame.simplesmsforwarder.sms.SmsController;
 import com.chame.simplesmsforwarder.sms.SmsMessage;
@@ -11,10 +13,14 @@ import org.json.JSONException;
 
 
 public class AppViewModel extends AndroidViewModel {
-    private static ThreadingAssistant thAssistant = new ThreadingAssistant();
+    private static final ThreadingAssistant thAssistant = new ThreadingAssistant();
+    private final SmsController smsController;
     private SocketClient socketClient;
-    private SmsController smsController;
     private SmsMessage retrySms;
+
+    // Mutable data
+    private MutableLiveData<Boolean> socketOnline;
+    private MutableLiveData<Boolean> gsmOnline;
 
 
     public AppViewModel(@NonNull Application application) {
@@ -22,14 +28,32 @@ public class AppViewModel extends AndroidViewModel {
         smsController = new SmsController(application);
         smsController.setOnSmsSendFailureListener(this::onSmsFailure);
         smsController.setOnSmsSendSuccessListener(this::onSmsSuccess);
+
+        // Mutable data
+        socketOnline = new MutableLiveData<>();
+        socketOnline.setValue(false);
+        gsmOnline = new MutableLiveData<>();
+        gsmOnline.setValue(false);
     }
 
     public void setSocketClient(SocketClient socket) {
         socketClient = socket;
         socketClient.setFailureListener(this::onSocketFailure);
         socketClient.setMsgListener(this::onSocketMessage);
+        thAssistant.socketHeartBeat(this::heartBeatUpdateInfo, 5);
         checkRadioIsUp();
     }
+
+    // region Mutable data
+    public LiveData<Boolean> getSocketStatus() {
+        return socketOnline;
+    }
+
+    public LiveData<Boolean> getGsmStatus() {
+        return gsmOnline;
+    }
+
+    // endregion
 
     // region Socket Listeners
     public void onSocketMessage(String jsonMessage) {
@@ -52,6 +76,8 @@ public class AppViewModel extends AndroidViewModel {
 
     // region Sms Listeners
     public void onSmsSuccess(SmsMessage msg) {
+        gsmOnline.setValue(true);
+
         socketClient.notifyReady();
         retrySms = null;
     }
@@ -71,7 +97,7 @@ public class AppViewModel extends AndroidViewModel {
         }
 
         if (retrySms.getAttempts() == 3) {
-            // Check if the network connection is still up.
+            // Check if the radio connection is still up.
             checkRadioIsUp();
             return;
         }
@@ -102,7 +128,7 @@ public class AppViewModel extends AndroidViewModel {
     private void checkRadioIsUp(){
         // TODO Configure this in settings
         MainActivity.getInstance().setSnackbar("Sending verification SMS to check if network is up...");
-        thAssistant.postSms(() -> smsController.sendSMS(new SmsMessage("+573209811646", "SimpleSmsForwarder: Testing network")));
+        // thAssistant.postSms(() -> smsController.sendSMS(new SmsMessage("+573209811646", "SimpleSmsForwarder: Testing network")));
     }
 
     private void retrySmsSend() {
@@ -110,12 +136,19 @@ public class AppViewModel extends AndroidViewModel {
     }
 
     private void pauseExecution() {
+        gsmOnline.setValue(false);
         thAssistant.postTimeout(this::retrySmsSend, 5);
     }
 
     private void postponeExecution() {
-        // TODO tell the frontend that the app has stopped due to network issues, and will restart in 5 minutes.
+        gsmOnline.setValue(false);
+        // TODO tell the frontend that the app has stopped due to network issues, and will restart in 2 minutes.
         MainActivity.getInstance().setSnackbar("Execution has been paused for 2 minutes due to network errors.");
-        thAssistant.postTimeout(this::retrySmsSend, 120);
+        thAssistant.postTimeout(this::checkRadioIsUp, 120);
+    }
+
+    private void heartBeatUpdateInfo() {
+        socketOnline.setValue(socketClient.isConnected());
+
     }
 }

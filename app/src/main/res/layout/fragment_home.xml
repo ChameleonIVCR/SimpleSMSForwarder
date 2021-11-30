@@ -8,22 +8,103 @@
         tools:context=".ui.home.HomeFragment">
 
     <TextView
-            android:id="@+id/text_home"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:textAlignment="center"
-            android:textSize="20sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_bias="1.0"
-            app:layout_constraintVertical_bias="0.028"/>
-    <Button
-            android:text="Button"
+            android:text="0"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:id="@+id/button1" tools:layout_editor_absoluteY="383dp"
-            tools:layout_editor_absoluteX="161dp"/>
+            android:layout_height="wrap_content" android:id="@+id/sentMessages3"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginLeft="180dp" android:layout_marginStart="180dp"
+            app:layout_constraintTop_toBottomOf="@+id/sentMessages2" android:layout_marginTop="16dp"/>
+    <TextView
+            android:text="0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/sentMessages4"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginLeft="180dp" android:layout_marginStart="180dp"
+            app:layout_constraintTop_toBottomOf="@+id/sentMessages3" android:layout_marginTop="16dp"/>
+    <TextView
+            android:text="Rescheduled:"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/rescheduledSmsLabel"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginLeft="50dp" android:layout_marginStart="50dp"
+            app:layout_constraintTop_toBottomOf="@+id/failedsendLabel" android:layout_marginTop="16dp"/>
+    <TextView
+            android:text="Uptime (m):"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/uptimeLabel"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginLeft="50dp" android:layout_marginStart="50dp"
+            app:layout_constraintTop_toBottomOf="@+id/rescheduledSmsLabel" android:layout_marginTop="16dp"/>
+    <TextView
+            android:text="0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/sentMessages2"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginLeft="180dp" android:layout_marginStart="180dp"
+            app:layout_constraintTop_toBottomOf="@+id/sentMessages" android:layout_marginTop="16dp"/>
+    <TextView
+            android:text="GSM"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/radioText"
+            android:textSize="19sp"
+            app:layout_constraintStart_toStartOf="@+id/gsmImage"
+            app:layout_constraintEnd_toEndOf="@+id/gsmImage" app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="32dp"/>
+    <TextView
+            android:text="Socket"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/socketText"
+            android:textSize="19sp"
+            app:layout_constraintEnd_toEndOf="@+id/socketImage" app:layout_constraintStart_toStartOf="@+id/socketImage"
+            app:layout_constraintTop_toTopOf="parent" android:layout_marginTop="32dp"/>
+    <ImageView
+            android:src="@drawable/ic_socket_24dp"
+            android:layout_width="100dp"
+            android:layout_height="100dp" android:id="@+id/socketImage"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginLeft="50dp"
+            android:layout_marginStart="50dp" app:layout_constraintTop_toBottomOf="@+id/socketText"
+            android:layout_marginTop="32dp"/>
+    <ImageView
+            android:src="@drawable/ic_radio_24dp"
+            android:layout_width="100dp"
+            android:layout_height="100dp" android:id="@+id/gsmImage"
+            app:layout_constraintEnd_toEndOf="parent" android:layout_marginRight="50dp"
+            android:layout_marginEnd="50dp" app:layout_constraintTop_toBottomOf="@+id/radioText"
+            android:layout_marginTop="32dp"/>
+    <TextView
+            android:text="Statistics"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/textView3"
+            android:textSize="19sp"
+            app:layout_constraintTop_toBottomOf="@+id/gsmImage" android:layout_marginTop="32dp"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"/>
+    <TextView
+            android:text="Sent Messages:"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/sentLabel"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView3"
+            android:layout_marginTop="32dp" android:layout_marginLeft="50dp" android:layout_marginStart="50dp"/>
+    <TextView
+            android:text="Failed to Send:"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/failedsendLabel"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginLeft="50dp" android:layout_marginStart="50dp"
+            app:layout_constraintTop_toBottomOf="@+id/sentLabel" android:layout_marginTop="16dp"/>
+    <TextView
+            android:text="0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/sentMessages"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView3"
+            android:layout_marginTop="32dp" android:layout_marginLeft="180dp" android:layout_marginStart="180dp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
