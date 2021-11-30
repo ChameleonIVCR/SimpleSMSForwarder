@@ -84,7 +84,7 @@ public class HomeFragment extends Fragment {
                     }
                 }, new IntentFilter("SMS_DELIVERED"));
 
-                sms.sendTextMessage("+573138816730", null, "Mensaje de prueba", sentIntent, deliveredIntent);
+                sms.sendTextMessage("+573138816730", null, "Prueba de mensaje juas juas", sentIntent, deliveredIntent);
             }
         });
 
