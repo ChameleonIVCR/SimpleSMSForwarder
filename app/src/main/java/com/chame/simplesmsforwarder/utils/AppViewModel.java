@@ -19,8 +19,8 @@ public class AppViewModel extends AndroidViewModel {
     private SmsMessage retrySms;
 
     // Mutable data
-    private MutableLiveData<Boolean> socketOnline;
-    private MutableLiveData<Boolean> gsmOnline;
+    private final MutableLiveData<Boolean> socketOnline;
+    private final MutableLiveData<Boolean> gsmOnline;
 
 
     public AppViewModel(@NonNull Application application) {
@@ -36,13 +36,33 @@ public class AppViewModel extends AndroidViewModel {
         gsmOnline.setValue(false);
     }
 
-    public void setSocketClient(SocketClient socket) {
-        socketClient = socket;
+    // region Socket client login
+
+    public void setSocketClientAndConnect(SocketClient.OnSocketFailureListener sf,
+                                SocketClient.OnSocketLoginSuccessListener ss,
+                                String ip,
+                                String port,
+                                String token,
+                                boolean https) {
+
+        socketClient = new SocketClient(sf, ss);
+        socketClient.connect(
+                ip,
+                port,
+                token,
+                https
+        );
+    }
+
+    public void setSocketClientMainListeners() {
         socketClient.setFailureListener(this::onSocketFailure);
         socketClient.setMsgListener(this::onSocketMessage);
+        socketClient.setSuccessListener(() -> Utils.runOnUiThread(() -> socketOnline.setValue(socketClient.isConnected())));
         thAssistant.socketHeartBeat(this::heartBeatUpdateInfo, 5);
         checkRadioIsUp();
     }
+
+    // endregion
 
     // region Mutable data
     public LiveData<Boolean> getSocketStatus() {
@@ -55,13 +75,14 @@ public class AppViewModel extends AndroidViewModel {
 
     // endregion
 
-    // region Socket Listeners
+    // region Socket listeners
     public void onSocketMessage(String jsonMessage) {
         SmsMessage sms;
         try {
             sms = new SmsMessage(jsonMessage);
         } catch (JSONException e) {
-            MainActivity.getInstance().setSnackbar("Received SMS wasn't correctly encoded, continuing...");
+            Utils.runOnUiThread(() -> MainActivity.getInstance()
+                    .setSnackbar("Received SMS wasn't correctly encoded, continuing..."));
             return;
         }
 
@@ -69,14 +90,13 @@ public class AppViewModel extends AndroidViewModel {
     }
 
     public void onSocketFailure(SocketClient.FailureCode f) {
-
+        Utils.runOnUiThread(() -> socketOnline.setValue(socketClient.isConnected()));
     }
     // endregion
 
-
-    // region Sms Listeners
+    // region Sms listeners
     public void onSmsSuccess(SmsMessage msg) {
-        gsmOnline.setValue(true);
+        Utils.runOnUiThread(() -> gsmOnline.setValue(true));
 
         socketClient.notifyReady();
         retrySms = null;
@@ -125,10 +145,15 @@ public class AppViewModel extends AndroidViewModel {
     }
     // endregion
 
+    // region General purpose listeners
+
     private void checkRadioIsUp(){
         // TODO Configure this in settings
-        MainActivity.getInstance().setSnackbar("Sending verification SMS to check if network is up...");
-        // thAssistant.postSms(() -> smsController.sendSMS(new SmsMessage("+573209811646", "SimpleSmsForwarder: Testing network")));
+        Utils.runOnUiThread(() -> MainActivity.getInstance().setSnackbar("Sending verification SMS to check if network is up..."));
+        thAssistant.postSms(() -> smsController.sendSMS(new SmsMessage(
+                MainActivity.getInstance().getDataAssistant().getConfiguration().getProperty("test-phone"),
+                "SimpleSmsForwarder: Testing network")
+        ));
     }
 
     private void retrySmsSend() {
@@ -136,19 +161,29 @@ public class AppViewModel extends AndroidViewModel {
     }
 
     private void pauseExecution() {
-        gsmOnline.setValue(false);
+        Utils.runOnUiThread(() -> gsmOnline.setValue(false));
         thAssistant.postTimeout(this::retrySmsSend, 5);
     }
 
     private void postponeExecution() {
-        gsmOnline.setValue(false);
+        Utils.runOnUiThread(() -> gsmOnline.setValue(false));
         // TODO tell the frontend that the app has stopped due to network issues, and will restart in 2 minutes.
-        MainActivity.getInstance().setSnackbar("Execution has been paused for 2 minutes due to network errors.");
+        Utils.runOnUiThread(() -> MainActivity.getInstance()
+                .setSnackbar("Couldn't send test SMS, assuming network is down, retrying in 2 minutes..."));
+
         thAssistant.postTimeout(this::checkRadioIsUp, 120);
     }
 
     private void heartBeatUpdateInfo() {
-        socketOnline.setValue(socketClient.isConnected());
+        Utils.runOnUiThread(() -> socketOnline.setValue(socketClient.isConnected()));
 
+        if (Utils.isAirplaneModeOn(MainActivity.getInstance())) {
+            Utils.runOnUiThread(() -> {
+                gsmOnline.setValue(false);
+                MainActivity.getInstance().setSnackbar("Airplane mode detected, please disable it before resuming...");
+            });
+        }
     }
+
+    // endregion
 }

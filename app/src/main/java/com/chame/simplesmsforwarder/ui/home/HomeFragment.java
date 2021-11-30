@@ -24,8 +24,6 @@ import com.chame.simplesmsforwarder.databinding.FragmentHomeBinding;
 import com.chame.simplesmsforwarder.utils.AppViewModel;
 
 public class HomeFragment extends Fragment {
-
-    private HomeViewModel homeViewModel;
     private FragmentHomeBinding binding;
 
 

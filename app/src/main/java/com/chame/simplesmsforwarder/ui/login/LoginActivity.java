@@ -11,6 +11,8 @@ import com.chame.simplesmsforwarder.R;
 import com.chame.simplesmsforwarder.socket.SocketClient;
 import com.chame.simplesmsforwarder.utils.Configuration;
 import com.google.android.material.snackbar.Snackbar;
+import com.chame.simplesmsforwarder.utils.Utils;
+
 
 public class LoginActivity extends AppCompatActivity {
     private SocketClient socketClient;
@@ -31,8 +33,9 @@ public class LoginActivity extends AppCompatActivity {
 
         if (rememberCredentials && configuration.hasCredentials()) {
             connectButton.setEnabled(false);
-            socketClient = new SocketClient(this::onLoginFailure, this::onLoginSuccess);
-            socketClient.connect(
+            MainActivity.getInstance().getAppViewModel().setSocketClientAndConnect(
+                    this::onLoginFailure,
+                    this::onLoginSuccess,
                     configuration.getProperty("ip"),
                     configuration.getProperty("port"),
                     configuration.getProperty("token"),
@@ -49,13 +52,14 @@ public class LoginActivity extends AppCompatActivity {
 
     private void onLogin(View v) {
         connectButton.setEnabled(false);
-        socketClient = new SocketClient(this::onLoginFailure, this::onLoginSuccess);
 
         EditText ipField = findViewById(R.id.ipField);
         EditText portField = findViewById(R.id.portField);
         EditText tokenField = findViewById(R.id.tokenField);
 
-        socketClient.connect(
+        MainActivity.getInstance().getAppViewModel().setSocketClientAndConnect(
+                this::onLoginFailure,
+                this::onLoginSuccess,
                 ipField.getText().toString(),
                 portField.getText().toString(),
                 tokenField.getText().toString(),
@@ -64,7 +68,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void onLoginSuccess() {
-        MainActivity.getInstance().getAppViewModel().setSocketClient(socketClient);
+        MainActivity.getInstance().getAppViewModel().setSocketClientMainListeners();
         finish();
     }
 
@@ -90,7 +94,6 @@ public class LoginActivity extends AppCompatActivity {
         ).show(
         );
 
-        socketClient.disconnect();
-        connectButton.setEnabled(true);
+        Utils.runOnUiThread(() -> connectButton.setEnabled(true));
     }
 }

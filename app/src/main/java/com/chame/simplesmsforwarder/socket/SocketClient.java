@@ -48,11 +48,11 @@ public class SocketClient {
         });
 
         socket.on(Socket.EVENT_DISCONNECT, args -> {
-            listener.onConnectionFailure(FailureCode.AuthError);
+            listener.onConnectionFailure(FailureCode.ConnectionError);
         });
 
         socket.on(Socket.EVENT_CONNECT_ERROR, args -> {
-            listener.onConnectionFailure(FailureCode.AuthError);
+            listener.onConnectionFailure(FailureCode.ConnectionError);
         });
 
         socket.on("message", message -> {
@@ -90,7 +90,10 @@ public class SocketClient {
 
     public void setFailureListener(OnSocketFailureListener loginFailureListener) {
         this.listener = loginFailureListener;
-        this.loginListener = null;
+    }
+
+    public void setSuccessListener(OnSocketLoginSuccessListener loginSuccessListener) {
+        this.loginListener = loginSuccessListener;
     }
 
     public boolean isConnected() {
