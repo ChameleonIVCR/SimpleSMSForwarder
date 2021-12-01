@@ -13,7 +13,7 @@ public class SmsMessage {
     public SmsMessage(String message) throws JSONException {
         originalMessage = message;
         JSONObject json = new JSONObject(message);
-        if (!json.has("cell_phone") || json.has("message")) throw new JSONException("Key error");
+        if (!json.has("cell_phone") || !json.has("message")) throw new JSONException("Key error");
 
         String incoming_message = json.getString("message");
         final int messageLength = Math.min(incoming_message.length(), 160);

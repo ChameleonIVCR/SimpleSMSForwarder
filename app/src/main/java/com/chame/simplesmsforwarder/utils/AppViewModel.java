@@ -84,11 +84,15 @@ public class AppViewModel extends AndroidViewModel {
     // region Socket listeners
     public void onSocketMessage(String jsonMessage) {
         SmsMessage sms;
+
         try {
             sms = new SmsMessage(jsonMessage);
         } catch (JSONException e) {
             Utils.runOnUiThread(() -> MainActivity.getInstance()
                     .setSnackbar("Received SMS wasn't correctly encoded, continuing..."));
+            socketClient.notifyReady();
+            isReady = true;
+            retrySms = null;
             return;
         }
 
@@ -208,7 +212,7 @@ public class AppViewModel extends AndroidViewModel {
     // endregion
 
     private void sendSms(SmsMessage sms) {
-        //smsController.sendSMS(sms);
+        // smsController.sendSMS(sms);
         thAssistant.postSms(() -> smsController.sendSMS(sms));
         isReady = false;
     }

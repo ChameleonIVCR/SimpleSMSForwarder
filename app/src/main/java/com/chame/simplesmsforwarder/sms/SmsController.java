@@ -55,8 +55,11 @@ public class SmsController {
         FailureCode failureCode = null;
 
         switch (resultCode) {
-            case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                failureCode = FailureCode.GenericFailure;
+            case Activity.RESULT_OK:
+                if (successListener != null) successListener.onSuccess(smsMessage);
+                return;
+            case Activity.RESULT_CANCELED:
+                failureCode = FailureCode.Canceled;
                 break;
             case SmsManager.RESULT_ERROR_NO_SERVICE:
                 failureCode = FailureCode.NoService;
@@ -67,9 +70,12 @@ public class SmsController {
             case SmsManager.RESULT_ERROR_RADIO_OFF:
                 failureCode = FailureCode.RadioOff;
                 break;
+            default:
+                failureCode = FailureCode.GenericFailure;
+                break;
         }
 
-        if (failureCode != null && listener != null) {
+        if (listener != null) {
             handleFailure(failureCode);
         }
     }
@@ -118,7 +124,7 @@ public class SmsController {
         NullPdu,
         RadioOff,
         Canceled,
-        NoPermission
+        NoPermission,
     }
 
     public interface onSmsSendFailureListener {
