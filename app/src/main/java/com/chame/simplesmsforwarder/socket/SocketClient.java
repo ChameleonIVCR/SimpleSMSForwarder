@@ -80,7 +80,7 @@ public class SocketClient {
     }
 
     public void disconnect() {
-        socket.disconnect();
+        if (socket != null) socket.disconnect();
         socket = null;
     }
 

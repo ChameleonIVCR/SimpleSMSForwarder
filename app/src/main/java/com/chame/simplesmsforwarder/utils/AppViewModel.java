@@ -22,6 +22,8 @@ public class AppViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> socketOnline;
     private final MutableLiveData<Boolean> gsmOnline;
 
+    private boolean isReady = false;
+
 
     public AppViewModel(@NonNull Application application) {
         super(application);
@@ -57,9 +59,13 @@ public class AppViewModel extends AndroidViewModel {
     public void setSocketClientMainListeners() {
         socketClient.setFailureListener(this::onSocketFailure);
         socketClient.setMsgListener(this::onSocketMessage);
-        socketClient.setSuccessListener(() -> Utils.runOnUiThread(() -> socketOnline.setValue(socketClient.isConnected())));
+        socketClient.setSuccessListener(this::onSocketReconnect);
         thAssistant.socketHeartBeat(this::heartBeatUpdateInfo, 5);
         checkRadioIsUp();
+    }
+
+    public void disconnectSocket() {
+        if (socketClient != null) socketClient.disconnect();
     }
 
     // endregion
@@ -86,7 +92,15 @@ public class AppViewModel extends AndroidViewModel {
             return;
         }
 
-        thAssistant.postSms(() -> smsController.sendSMS(sms));
+        sendSms(sms);
+    }
+
+    private void onSocketReconnect() {
+        Utils.runOnUiThread(() -> socketOnline.setValue(socketClient.isConnected()));
+
+        // If we are ready to send more messages, notify the server. If we are not, wait
+        // for current running operations to notify so themselves.
+        if (isReady) socketClient.notifyReady();
     }
 
     public void onSocketFailure(SocketClient.FailureCode f) {
@@ -99,6 +113,7 @@ public class AppViewModel extends AndroidViewModel {
         Utils.runOnUiThread(() -> gsmOnline.setValue(true));
 
         socketClient.notifyReady();
+        isReady = true;
         retrySms = null;
     }
 
@@ -106,6 +121,12 @@ public class AppViewModel extends AndroidViewModel {
         String msg = null;
         if (retrySms == null) retrySms = smsMessage;
         retrySms.incrementAttempts();
+
+        if (f == SmsController.FailureCode.NoPermission) {
+            Utils.runOnUiThread(() -> MainActivity.getInstance()
+                    .setSnackbar("SMS permissions were denied, please restart the app and give SMS permissions."));
+            return;
+        }
 
         // If a test SMS didn't reach its destination, stop execution completely.
         if (smsMessage.isTest()) {
@@ -150,14 +171,13 @@ public class AppViewModel extends AndroidViewModel {
     private void checkRadioIsUp(){
         // TODO Configure this in settings
         Utils.runOnUiThread(() -> MainActivity.getInstance().setSnackbar("Sending verification SMS to check if network is up..."));
-        thAssistant.postSms(() -> smsController.sendSMS(new SmsMessage(
+        sendSms(new SmsMessage(
                 MainActivity.getInstance().getDataAssistant().getConfiguration().getProperty("test-phone"),
-                "SimpleSmsForwarder: Testing network")
-        ));
+                "SimpleSmsForwarder: Testing network"));
     }
 
     private void retrySmsSend() {
-        thAssistant.postSms(() -> smsController.sendSMS(retrySms));
+        sendSms(retrySms);
     }
 
     private void pauseExecution() {
@@ -186,4 +206,10 @@ public class AppViewModel extends AndroidViewModel {
     }
 
     // endregion
+
+    private void sendSms(SmsMessage sms) {
+        //smsController.sendSMS(sms);
+        thAssistant.postSms(() -> smsController.sendSMS(sms));
+        isReady = false;
+    }
 }

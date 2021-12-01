@@ -86,20 +86,22 @@ public class SmsController {
     }
 
     public void handleFailure(FailureCode f) {
-        smsMessage.incrementAttempts();
         if (listener != null) listener.onFailure(f, smsMessage);
     }
 
     public void sendSMS(SmsMessage smsMessage) {
         this.smsMessage = smsMessage;
-
-        smsManager.sendTextMessage(
-                smsMessage.getPhone(),
-                null,
-                smsMessage.getMessage(),
-                sentIntent,
-                deliveredIntent
-        );
+        try {
+            smsManager.sendTextMessage(
+                    smsMessage.getPhone(),
+                    null,
+                    smsMessage.getMessage(),
+                    sentIntent,
+                    deliveredIntent
+            );
+        } catch(SecurityException e) {
+            if (listener != null) listener.onFailure(FailureCode.NoPermission, null);
+        }
     }
 
     public void setOnSmsSendFailureListener(onSmsSendFailureListener listener){
@@ -115,7 +117,8 @@ public class SmsController {
         NoService,
         NullPdu,
         RadioOff,
-        Canceled
+        Canceled,
+        NoPermission
     }
 
     public interface onSmsSendFailureListener {

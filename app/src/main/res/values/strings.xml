@@ -3,4 +3,13 @@
     <string name="title_home">Status</string>
     <string name="title_dashboard">Notifications</string>
     <string name="title_notifications">Settings</string>
+    <string name="smsPermissionDescription">
+        Please note that SMS rates will be charged by your mobile network provider, and the app will NOT limit the
+        amount of messages sent. We enforce fair usage, but ultimately, your mobile network provider may decide to block
+        your phone line if suspicious messages are sent, or if the usage of applications of this type (SMS Automation)
+        is against their Terms of Service.
+
+        By pressing accept, you free us of any responsibility inherited from the messages sent from this application,
+        and acknowledge the need of SMS permissions for the app to perform its core functionalities.
+    </string>
 </resources>
