@@ -23,6 +23,8 @@ public class AppViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> gsmOnline;
 
     private boolean isReady = false;
+    private boolean isAtReadyTimeout = false;
+    private long lastSentAt;
 
 
     public AppViewModel(@NonNull Application application) {
@@ -104,7 +106,7 @@ public class AppViewModel extends AndroidViewModel {
 
         // If we are ready to send more messages, notify the server. If we are not, wait
         // for current running operations to notify so themselves.
-        if (isReady) socketClient.notifyReady();
+        if (isReady) notifyReady();
     }
 
     public void onSocketFailure(SocketClient.FailureCode f) {
@@ -116,7 +118,7 @@ public class AppViewModel extends AndroidViewModel {
     public void onSmsSuccess(SmsMessage msg) {
         Utils.runOnUiThread(() -> gsmOnline.setValue(true));
 
-        socketClient.notifyReady();
+        notifyReady();
         isReady = true;
         retrySms = null;
     }
@@ -211,9 +213,28 @@ public class AppViewModel extends AndroidViewModel {
 
     // endregion
 
+    private void notifyReady() {
+        long timeDeltaSeconds = (System.currentTimeMillis() - lastSentAt) / 1000;
+        if (timeDeltaSeconds >=
+                Long.parseLong(MainActivity.getInstance().getDataAssistant().getConfiguration().getProperty("timeout"))) {
+            socketClient.notifyReady();
+        } else {
+            if (!isAtReadyTimeout) {
+                long futureTime = lastSentAt + 6000;
+                isAtReadyTimeout = true;
+                thAssistant.postReadyTimeout(() -> {
+                            socketClient.notifyReady();
+                            isAtReadyTimeout = false;
+                        }, futureTime
+                );
+            }
+        }
+    }
+
     private void sendSms(SmsMessage sms) {
         // smsController.sendSMS(sms);
         thAssistant.postSms(() -> smsController.sendSMS(sms));
         isReady = false;
+        lastSentAt = System.currentTimeMillis();
     }
 }

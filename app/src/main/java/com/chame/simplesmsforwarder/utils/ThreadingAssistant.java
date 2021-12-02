@@ -1,16 +1,19 @@
 package com.chame.simplesmsforwarder.utils;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+
 
 public class ThreadingAssistant {
-    ScheduledExecutorService timeoutExecutor = Executors.newScheduledThreadPool(2);
-    ExecutorService smsThread = Executors.newSingleThreadExecutor();
+    private final ScheduledExecutorService timeoutExecutor = Executors.newScheduledThreadPool(2);
+    private final ScheduledExecutorService readyTimeout = Executors.newSingleThreadScheduledExecutor();
+    private final ExecutorService smsThread = Executors.newSingleThreadExecutor();
 
     public void postTimeout(Runnable runnable, int seconds) {
         timeoutExecutor.schedule(runnable, seconds, TimeUnit.SECONDS);
+    }
+
+    public void postReadyTimeout(Runnable runnable, long millis) {
+        readyTimeout.schedule(runnable, millis, TimeUnit.MILLISECONDS);
     }
 
     public void socketHeartBeat(Runnable runnable, int seconds) {

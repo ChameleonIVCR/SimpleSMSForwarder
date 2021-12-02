@@ -1,7 +1,7 @@
 package com.chame.simplesmsforwarder.ui.settings;
 
-import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +24,7 @@ public class SettingsFragment extends Fragment {
 
         // Listeners
         binding.networkTestPopup.setOnClickListener(this::onNetworkPopup);
+        binding.networkTimeoutPopup.setOnClickListener(this::onTimeoutPopup);
 
         loadConfiguration();
         return binding.getRoot();
@@ -55,6 +56,27 @@ public class SettingsFragment extends Fragment {
         builder.show();
     }
 
+    private void onTimeoutPopup(View v) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Set new GSM timeout");
+
+        final EditText input = new EditText(getContext());
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        builder.setView(input);
+
+        builder.setPositiveButton("OK", (dialog, which) -> {
+                    MainActivity.getInstance().getDataAssistant().getConfiguration()
+                            .setProperty("timeout", input.getText().toString());
+                    dialog.cancel();
+                    saveConfiguration();
+                }
+        );
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
+
     private void saveConfiguration(){
         MainActivity.getInstance().getDataAssistant().getConfiguration().save();
         loadConfiguration();
@@ -62,8 +84,7 @@ public class SettingsFragment extends Fragment {
 
     private void loadConfiguration() {
         Configuration config = MainActivity.getInstance().getDataAssistant().getConfiguration();
-        String a = config.getProperty("test-phone");
-        System.out.println(a);
+        binding.networkTimeoutValue.setText(config.getProperty("timeout"));
         binding.networkTestValue.setText(config.getProperty("test-phone"));
     }
 }

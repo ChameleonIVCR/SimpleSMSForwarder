@@ -38,5 +38,33 @@
                     android:layout_marginRight="100dp"
                     android:layout_marginLeft="25dp"/>
         </LinearLayout>
+
+        <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:gravity="center_vertical"
+                android:id="@+id/networkTimeoutPopup">
+            <TextView
+                    android:layout_marginStart="25dp"
+                    android:layout_marginEnd="100dp"
+                    android:textSize="15sp"
+                    android:text="GSM network rate limit (seconds)"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/textView1"
+                    android:layout_marginRight="100dp"
+                    android:layout_marginLeft="25dp"/>
+            <TextView
+                    android:layout_marginStart="25dp"
+                    android:layout_marginEnd="100dp"
+                    android:textSize="12sp"
+                    android:text="6"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/networkTimeoutValue"
+                    android:layout_marginRight="100dp"
+                    android:layout_marginLeft="25dp"/>
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

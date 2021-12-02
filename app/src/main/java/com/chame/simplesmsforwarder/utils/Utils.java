@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.provider.Settings;
 
 public class Utils {
+
     public static void runOnUiThread(Runnable r) {
         new Handler(Looper.getMainLooper()).post(r);
     }
