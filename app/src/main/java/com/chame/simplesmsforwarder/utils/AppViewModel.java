@@ -215,12 +215,15 @@ public class AppViewModel extends AndroidViewModel {
 
     private void notifyReady() {
         long timeDeltaSeconds = (System.currentTimeMillis() - lastSentAt) / 1000;
-        if (timeDeltaSeconds >=
-                Long.parseLong(MainActivity.getInstance().getDataAssistant().getConfiguration().getProperty("timeout"))) {
+        long timeout = Long.parseLong(
+                MainActivity.getInstance().getDataAssistant().getConfiguration().getProperty("timeout")
+        );
+
+        if (timeDeltaSeconds >= timeout) {
             socketClient.notifyReady();
         } else {
             if (!isAtReadyTimeout) {
-                long futureTime = lastSentAt + 6000;
+                long futureTime = timeout - timeDeltaSeconds;
                 isAtReadyTimeout = true;
                 thAssistant.postReadyTimeout(() -> {
                             socketClient.notifyReady();

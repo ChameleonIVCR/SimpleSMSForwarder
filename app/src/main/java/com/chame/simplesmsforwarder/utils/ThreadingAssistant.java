@@ -12,8 +12,8 @@ public class ThreadingAssistant {
         timeoutExecutor.schedule(runnable, seconds, TimeUnit.SECONDS);
     }
 
-    public void postReadyTimeout(Runnable runnable, long millis) {
-        readyTimeout.schedule(runnable, millis, TimeUnit.MILLISECONDS);
+    public void postReadyTimeout(Runnable runnable, long seconds) {
+        readyTimeout.schedule(runnable, seconds, TimeUnit.SECONDS);
     }
 
     public void socketHeartBeat(Runnable runnable, int seconds) {
