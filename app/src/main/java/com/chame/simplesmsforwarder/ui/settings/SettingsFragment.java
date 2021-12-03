@@ -13,6 +13,7 @@ import com.chame.simplesmsforwarder.MainActivity;
 import com.chame.simplesmsforwarder.databinding.FragmentSettingsBinding;
 import com.chame.simplesmsforwarder.utils.Configuration;
 
+
 public class SettingsFragment extends Fragment {
 
     private FragmentSettingsBinding binding;

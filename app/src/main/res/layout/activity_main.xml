@@ -30,7 +30,7 @@
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintBottom_toTopOf="@+id/nav_view" app:layout_constraintTop_toBottomOf="@+id/mainToolbar"/>
     <androidx.appcompat.widget.Toolbar
-            android:layout_width="409dp"
+            android:layout_width="0dp"
             android:layout_height="56dp"
             android:background="?attr/colorPrimary"
             android:theme="?attr/actionBarTheme"
