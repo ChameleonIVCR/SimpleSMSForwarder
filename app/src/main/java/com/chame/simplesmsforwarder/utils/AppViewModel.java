@@ -179,7 +179,7 @@ public class AppViewModel extends AndroidViewModel {
         Utils.runOnUiThread(() -> MainActivity.getInstance().setSnackbar("Sending verification SMS to check if network is up..."));
         sendSms(new SmsMessage(
                 MainActivity.getInstance().getDataAssistant().getConfiguration().getProperty("test-phone"),
-                "SimpleSmsForwarder: Testing network"));
+                "SSF:Testing network at " + System.currentTimeMillis()));
     }
 
     private void retrySmsSend() {
