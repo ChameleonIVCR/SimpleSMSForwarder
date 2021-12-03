@@ -3,9 +3,10 @@ package com.chame.simplesmsforwarder;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.lifecycle.ViewModelProvider;
+import com.chame.simplesmsforwarder.models.EventViewModel;
 import com.chame.simplesmsforwarder.ui.login.LoginActivity;
 import com.chame.simplesmsforwarder.utils.DataAssistant;
-import com.chame.simplesmsforwarder.utils.AppViewModel;
+import com.chame.simplesmsforwarder.models.AppViewModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
@@ -22,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     public static WeakReference<MainActivity> weakActivity;
     private DataAssistant dataAssistant;
     private AppViewModel appViewModel;
+    private EventViewModel eventViewModel;
     private ActivityMainBinding binding;
 
 
@@ -34,12 +36,15 @@ public class MainActivity extends AppCompatActivity {
     public AppViewModel getAppViewModel() {
         return appViewModel;
     }
+    public EventViewModel getEventViewModel() {
+        return eventViewModel;
+    }
 
     public void setSnackbar(String msg) {
         Snackbar.make(
                 findViewById(R.id.nav_host_fragment_activity_main),
                 msg,
-                Snackbar.LENGTH_SHORT
+                Snackbar.LENGTH_LONG
         ).show(
         );
     }
@@ -52,6 +57,10 @@ public class MainActivity extends AppCompatActivity {
         appViewModel = new ViewModelProvider
                 .AndroidViewModelFactory(this.getApplication())
                 .create(AppViewModel.class);
+
+        eventViewModel = new ViewModelProvider(this).get(EventViewModel.class);
+
+        appViewModel.setEventPropagator(eventViewModel);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());

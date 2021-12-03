@@ -1,26 +1,24 @@
-package com.chame.simplesmsforwarder.utils;
+package com.chame.simplesmsforwarder.models;
 
 import android.app.Application;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import com.chame.simplesmsforwarder.MainActivity;
 import com.chame.simplesmsforwarder.sms.SmsController;
 import com.chame.simplesmsforwarder.sms.SmsMessage;
 import com.chame.simplesmsforwarder.socket.SocketClient;
+import com.chame.simplesmsforwarder.utils.ThreadingAssistant;
+import com.chame.simplesmsforwarder.utils.Utils;
 import org.json.JSONException;
 
 
 public class AppViewModel extends AndroidViewModel {
     private static final ThreadingAssistant thAssistant = new ThreadingAssistant();
+    private final int heartBeatTime = 5;
+    private EventViewModel eventPropagator;
     private final SmsController smsController;
     private SocketClient socketClient;
     private SmsMessage retrySms;
-
-    // Mutable data
-    private final MutableLiveData<Boolean> socketOnline;
-    private final MutableLiveData<Boolean> gsmOnline;
 
     private boolean isReady = false;
     private boolean isAtReadyTimeout = false;
@@ -32,12 +30,10 @@ public class AppViewModel extends AndroidViewModel {
         smsController = new SmsController(application);
         smsController.setOnSmsSendFailureListener(this::onSmsFailure);
         smsController.setOnSmsSendSuccessListener(this::onSmsSuccess);
+    }
 
-        // Mutable data
-        socketOnline = new MutableLiveData<>();
-        socketOnline.setValue(false);
-        gsmOnline = new MutableLiveData<>();
-        gsmOnline.setValue(false);
+    public void setEventPropagator(EventViewModel viewModel){
+        eventPropagator = viewModel;
     }
 
     // region Socket client login
@@ -62,23 +58,12 @@ public class AppViewModel extends AndroidViewModel {
         socketClient.setFailureListener(this::onSocketFailure);
         socketClient.setMsgListener(this::onSocketMessage);
         socketClient.setSuccessListener(this::onSocketReconnect);
-        thAssistant.socketHeartBeat(this::heartBeatUpdateInfo, 5);
+        thAssistant.socketHeartBeat(this::heartBeatUpdateInfo, heartBeatTime);
         checkRadioIsUp();
     }
 
     public void disconnectSocket() {
         if (socketClient != null) socketClient.disconnect();
-    }
-
-    // endregion
-
-    // region Mutable data
-    public LiveData<Boolean> getSocketStatus() {
-        return socketOnline;
-    }
-
-    public LiveData<Boolean> getGsmStatus() {
-        return gsmOnline;
     }
 
     // endregion
@@ -102,7 +87,7 @@ public class AppViewModel extends AndroidViewModel {
     }
 
     private void onSocketReconnect() {
-        Utils.runOnUiThread(() -> socketOnline.setValue(socketClient.isConnected()));
+        eventPropagator.setSocketStatus(socketClient.isConnected());
 
         // If we are ready to send more messages, notify the server. If we are not, wait
         // for current running operations to notify so themselves.
@@ -110,13 +95,15 @@ public class AppViewModel extends AndroidViewModel {
     }
 
     public void onSocketFailure(SocketClient.FailureCode f) {
-        Utils.runOnUiThread(() -> socketOnline.setValue(socketClient.isConnected()));
+        eventPropagator.setSocketStatus(socketClient.isConnected());
     }
     // endregion
 
     // region Sms listeners
     public void onSmsSuccess(SmsMessage msg) {
-        Utils.runOnUiThread(() -> gsmOnline.setValue(true));
+        eventPropagator.setGsmStatus(true);
+        eventPropagator.incrementSentMessages();
+        if (msg.isTest() && retrySms != null) eventPropagator.incrementFailedMessages();
 
         notifyReady();
         isReady = true;
@@ -137,7 +124,10 @@ public class AppViewModel extends AndroidViewModel {
         // If a test SMS didn't reach its destination, stop execution completely.
         if (smsMessage.isTest()) {
             // If we have any pending SMS to send, notify the server that it needs to be rescheduled.
-            if (retrySms != null) socketClient.notifyReschedule(retrySms);
+            if (retrySms != null && !retrySms.isTest()) {
+                socketClient.notifyReschedule(retrySms);
+                eventPropagator.incrementRescheduledMessages();
+            }
             retrySms = null;
             postponeExecution();
             return;
@@ -187,12 +177,13 @@ public class AppViewModel extends AndroidViewModel {
     }
 
     private void pauseExecution() {
-        Utils.runOnUiThread(() -> gsmOnline.setValue(false));
+        eventPropagator.setGsmStatus(false);
         thAssistant.postTimeout(this::retrySmsSend, 5);
     }
 
     private void postponeExecution() {
-        Utils.runOnUiThread(() -> gsmOnline.setValue(false));
+        eventPropagator.setCurrentEvent(EventViewModel.StatusEvent.Timeout);
+        eventPropagator.setGsmStatus(false);
         // TODO tell the frontend that the app has stopped due to network issues, and will restart in 2 minutes.
         Utils.runOnUiThread(() -> MainActivity.getInstance()
                 .setSnackbar("Couldn't send test SMS, assuming network is down, retrying in 2 minutes..."));
@@ -201,11 +192,12 @@ public class AppViewModel extends AndroidViewModel {
     }
 
     private void heartBeatUpdateInfo() {
-        Utils.runOnUiThread(() -> socketOnline.setValue(socketClient.isConnected()));
+        eventPropagator.setSocketStatus(socketClient.isConnected());
+        eventPropagator.incrementRunningTime(heartBeatTime);
 
         if (Utils.isAirplaneModeOn(MainActivity.getInstance())) {
+            eventPropagator.setGsmStatus(false);
             Utils.runOnUiThread(() -> {
-                gsmOnline.setValue(false);
                 MainActivity.getInstance().setSnackbar("Airplane mode detected, please disable it before resuming...");
             });
         }
@@ -220,14 +212,16 @@ public class AppViewModel extends AndroidViewModel {
         );
 
         if (timeDeltaSeconds >= timeout) {
+            eventPropagator.setCurrentEvent(EventViewModel.StatusEvent.Ready);
             socketClient.notifyReady();
         } else {
             if (!isAtReadyTimeout) {
                 long futureTime = timeout - timeDeltaSeconds;
                 isAtReadyTimeout = true;
                 thAssistant.postReadyTimeout(() -> {
-                            socketClient.notifyReady();
+                            eventPropagator.setCurrentEvent(EventViewModel.StatusEvent.Ready);
                             isAtReadyTimeout = false;
+                            socketClient.notifyReady();
                         }, futureTime
                 );
             }
@@ -235,9 +229,11 @@ public class AppViewModel extends AndroidViewModel {
     }
 
     private void sendSms(SmsMessage sms) {
-        // smsController.sendSMS(sms);
+        //smsController.sendSMS(sms);
         thAssistant.postSms(() -> smsController.sendSMS(sms));
         isReady = false;
+
+        eventPropagator.setCurrentEvent(EventViewModel.StatusEvent.Sending);
         lastSentAt = System.currentTimeMillis();
     }
 }
