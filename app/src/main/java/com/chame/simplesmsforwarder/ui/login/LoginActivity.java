@@ -55,6 +55,7 @@ public class LoginActivity extends AppCompatActivity {
                     configuration.getProperty("ip"),
                     configuration.getProperty("port"),
                     configuration.getProperty("token"),
+                    configuration.getProperty("phone"),
                     false
             );
         }
@@ -72,6 +73,7 @@ public class LoginActivity extends AppCompatActivity {
         EditText ipField = findViewById(R.id.ipField);
         EditText portField = findViewById(R.id.portField);
         EditText tokenField = findViewById(R.id.tokenField);
+        EditText phoneField = findViewById(R.id.phoneField);
 
         MainActivity.getInstance().getAppViewModel().setSocketClientAndConnect(
                 this::onLoginFailure,
@@ -79,6 +81,7 @@ public class LoginActivity extends AppCompatActivity {
                 ipField.getText().toString(),
                 portField.getText().toString(),
                 tokenField.getText().toString(),
+                phoneField.getText().toString(),
                 false
         );
     }

@@ -38,6 +38,17 @@
             app:layout_constraintEnd_toEndOf="parent" android:layout_marginLeft="64dp"
             android:layout_marginStart="64dp" android:layout_marginRight="64dp" android:layout_marginEnd="64dp"
             app:layout_constraintTop_toBottomOf="@+id/portField" android:layout_marginTop="24dp"/>
+    <EditText
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="phone"
+            android:ems="10"
+            android:id="@+id/phoneField"
+            android:hint="Phone Number" app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" android:layout_marginLeft="64dp"
+            android:layout_marginStart="64dp" android:layout_marginRight="64dp" android:layout_marginEnd="64dp"
+            app:layout_constraintTop_toBottomOf="@+id/tokenField"
+            app:layout_constraintHorizontal_bias="0.0" android:layout_marginTop="24dp"/>
     <Button
             android:text="Connect"
             android:layout_width="0dp"
@@ -50,16 +61,16 @@
             android:layout_width="48dp"
             android:layout_height="37dp" android:id="@+id/rememberSwitch"
             app:layout_constraintEnd_toEndOf="parent" android:layout_marginRight="64dp"
-            android:layout_marginEnd="64dp" app:layout_constraintTop_toBottomOf="@+id/tokenField"
+            android:layout_marginEnd="64dp" app:layout_constraintTop_toBottomOf="@+id/phoneField"
             android:layout_marginTop="24dp"/>
     <TextView
             android:text="Remember credentials"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/textView"
             android:textSize="18sp"
-            app:layout_constraintTop_toBottomOf="@+id/tokenField" android:layout_marginTop="24dp"
+            app:layout_constraintTop_toBottomOf="@+id/phoneField"
             app:layout_constraintStart_toStartOf="parent" android:layout_marginLeft="64dp"
-            android:layout_marginStart="64dp"/>
+            android:layout_marginStart="64dp" android:layout_marginTop="24dp"/>
     <ImageView
             android:layout_width="120dp"
             android:layout_height="105dp" app:srcCompat="@drawable/ic_sms_color_64dp"

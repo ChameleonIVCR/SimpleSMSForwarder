@@ -22,7 +22,7 @@ public class SocketClient {
         this.loginListener = loginListener;
     }
 
-    public void connect(String ip, String port, String token, boolean https) {
+    public void connect(String ip, String port, String token, String phone, boolean https) {
         String scheme = https ? "https" : "http";
         String root = String.format("%s:%s", ip, port);
 
@@ -33,6 +33,7 @@ public class SocketClient {
         IO.Options options = IO.Options.builder()
                 .setPath("/socket.io/")
                 .setAuth(Collections.singletonMap("token", token))
+                .setQuery(String.format("phone=%s", phone))
                 .build();
 
         try {

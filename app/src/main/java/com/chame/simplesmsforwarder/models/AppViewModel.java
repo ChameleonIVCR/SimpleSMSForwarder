@@ -43,6 +43,7 @@ public class AppViewModel extends AndroidViewModel {
                                 String ip,
                                 String port,
                                 String token,
+                                String phone,
                                 boolean https) {
 
         socketClient = new SocketClient(sf, ss);
@@ -50,6 +51,7 @@ public class AppViewModel extends AndroidViewModel {
                 ip,
                 port,
                 token,
+                phone,
                 https
         );
     }

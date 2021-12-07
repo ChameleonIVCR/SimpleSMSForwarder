@@ -27,7 +27,8 @@ public class Configuration {
     }
 
     public boolean hasCredentials(){
-        return getProperty("ip") != null && getProperty("port") != null && getProperty("token") != null;
+        return getProperty("ip") != null && getProperty("port") != null && getProperty("token") != null
+                && getProperty("phone") != null;
     }
 
     public void save(){
